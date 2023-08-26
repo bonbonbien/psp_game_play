@@ -1,6 +1,9 @@
 import gc
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from tqdm import tqdm
 import torch
+from torch import optim, Tensor
+import torch.nn.functional as F
 
 from base_trainer import BaseTrainer
 
@@ -38,13 +41,14 @@ class CustTrainer(BaseTrainer):
             self.optimizer.zero_grad(set_to_none=True)
 
             # Retrieve batched raw data
-            x = batch_data["X"].to(self.device)
+            x_num = batch_data["X_num"].to(self.device)
             x_cat = batch_data["X_cat"].to(self.device)
             y = batch_data["y"].to(self.device)
-            mask = y!=-1
+            # mask = y!=-1
+            mask = batch_data["mask"].to(self.device)
 
             # Forward pass
-            output = self.model(x, x_cat)
+            output = self.model(x_num, x_cat)
             self._iter += 1
             
             # apply mask
@@ -61,7 +65,7 @@ class CustTrainer(BaseTrainer):
             train_loss_total += loss.item()
 
             # Free mem.
-            del x, y, output
+            del x_num, y, output
             _ = gc.collect()
 
         train_loss_avg = train_loss_total / len(self.train_loader)
@@ -94,13 +98,14 @@ class CustTrainer(BaseTrainer):
         y_pred = []
         for i, batch_data in enumerate(self.eval_loader):
             # Retrieve batched raw data
-            x = batch_data["X"].to(self.device)
+            x_num = batch_data["X_num"].to(self.device)
             x_cat = batch_data["X_cat"].to(self.device)
             y = batch_data["y"].to(self.device)
-            mask = y!=-1
+            # mask = y!=-1
+            mask = batch_data["mask"].to(self.device)
 
             # Forward pass
-            output = self.model(x, x_cat)
+            output = self.model(x_num, x_cat)
             
             # apply mask
             y = y[mask]
@@ -114,11 +119,11 @@ class CustTrainer(BaseTrainer):
             y_true.append(y.detach().cpu())
             y_pred.append(output.detach().cpu())
 
-            del x, y, output
+            del x_num, y, output
             _ = gc.collect()
         
-        y_true = torch.cat(y_true).reshape(-1,18)
-        y_pred = torch.cat(y_pred).reshape(-1,18)
+        y_true = torch.cat(y_true).reshape(-1, self.cfg.N_QNS)
+        y_pred = torch.cat(y_pred).reshape(-1, self.cfg.N_QNS)
         
         y_pred = F.sigmoid(y_pred)  # Tmp. workaround (because loss has built-in sigmoid)
         eval_loss_avg = eval_loss_total / len(self.eval_loader)

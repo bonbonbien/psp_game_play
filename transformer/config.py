@@ -1,4 +1,4 @@
-N_QNS = 18
+# N_QNS = 18
 LEVEL = list(range(23))
 LEVEL_GROUP = ["0-4", "5-12", "13-22"]
 LVGP_ORDER = {"0-4": 0, "5-12": 1, "13-22": 2}
@@ -11,6 +11,58 @@ CAT_FEAT_SIZE = {
     "text_fqid_code": 127,
     "level_code": 23,
 }
+
+cur_grp = '5-12'
+
+class CFG:
+    # Questions in a level-group, one model per group
+    LVL_GRP = cur_grp
+    N_QNS = len(QNS_PER_LV_GP[cur_grp])
+    Q_ST = QNS_PER_LV_GP[cur_grp][0]
+    Q_ED = QNS_PER_LV_GP[cur_grp][-1]
+
+    # ==Mode==
+    # Specify True to enable model training
+    train = True
+    N_FOLD = 5
+
+    # ==Data===
+    # FEATS = ["et_diff", "event_comb_code", "room_fqid_code", "page_code", "text_fqid_code", "level_code"]
+    # CAT_FEATS = ["event_comb_code", "room_fqid_code", "page_code","text_fqid_code", "level_code"]
+    # COLS_TO_USE = ["session_id", "index", "level", "level_group", "elapsed_time", 
+                    # "event_name", "name", "room_fqid", "page", "text_fqid"]
+
+    NUM_FEATS = ["elapsed_time_log1p", "elapsed_time_diff_log1p", "room_coor_x", "room_coor_y"]
+    CAT_FEATS = ["event_name", "name", "fqid", "room_fqid", "level"]
+    FEATS = NUM_FEATS + CAT_FEATS
+
+    # T_WINDOW = 512
+    T_WINDOW = 256
+    
+    # ==Training==
+    SEED = 42
+    DEVICE = "cuda:0"
+    EPOCH = 70
+    CKPT_METRIC = "f1"
+    # CKPT_METRIC = "f1@0.63"
+
+    # ==DataLoader==
+    # BATCH_SIZE = 128
+    BATCH_SIZE = 3
+    # NUM_WORKERS = 4
+    NUM_WORKERS = 2
+
+    # ==Solver==
+    LR = 1e-3
+    WEIGHT_DECAY = 1e-2
+
+    # ==Early Stopping==
+    ES_PATIENCE = 20
+
+    # ==Evaluator==
+    EVAL_METRICS = ["auroc", "f1"]
+
+
 
 def q2level(q):
     if q<=3: 
@@ -49,5 +101,5 @@ event2int = {v:i for i, v in enumerate(event_name_feature)}
 fqid2int = {v:i for i, v in enumerate(fqid_feature)}
 room2int = {v:i for i, v in enumerate(room_fqid_feature)}
 
-print(len(name_feature), len(event_name_feature), len(fqid_feature), len(room_fqid_feature))
+print('cat len:', len(name_feature), len(event_name_feature), len(fqid_feature), len(room_fqid_feature))
 # 7, 12, 120, 20
