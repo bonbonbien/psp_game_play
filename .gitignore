@@ -1,0 +1,10 @@
+.idea
+.vscode
+.DS_Store
+*/__pycache__
+feature_selection
+input
+model
+submission
+*.png
+notes.txt
