@@ -90,7 +90,7 @@ class PspTransformerModel(nn.Module):
         self.pool = MeanPooling()
 
     def forward(self, numerical_array, name_array, event_array, fqid_array, room_fqid_array, 
-                level_array, mask, mask_for_pooling):
+                level_array, mask):
 
         name_embedding = self.name_embedding(name_array)
         event_embedding = self.event_embedding(event_array)
@@ -113,8 +113,9 @@ class PspTransformerModel(nn.Module):
                                           src_key_padding_mask=mask)
         output = output.permute(1,0,2).contiguous()
         output, _ = self.gru(output)
-        # mask_for_pooling = mask ?
-        output = self.pool(output, mask_for_pooling)
+        # src_key_padding_mask: when need to ignore, set it to True
+        # mask_for_pooling
+        output = self.pool(output, mask)
         output = self.linear_out(output)
 
         return output

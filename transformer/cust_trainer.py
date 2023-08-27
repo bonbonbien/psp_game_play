@@ -25,6 +25,7 @@ class CustTrainer(BaseTrainer):
         super(CustTrainer, self).__init__(
             cfg, model, loss_fn, optimizer, lr_skd, evaluator
         )
+        self.cat_feats = [feat for feat in cfg.FEATS if feat in cfg.CAT_FEATS]
         self.train_loader = train_loader
         self.eval_loader = eval_loader if eval_loader else train_loader
 
@@ -38,22 +39,26 @@ class CustTrainer(BaseTrainer):
 
         self.model.train()
         for i, batch_data in enumerate(tqdm(self.train_loader)):
-            self.optimizer.zero_grad(set_to_none=True)
+            # self.optimizer.zero_grad(set_to_none=True)
+            self.optimizer.zero_grad()
 
             # Retrieve batched raw data
             x_num = batch_data["X_num"].to(self.device)
-            x_cat = batch_data["X_cat"].to(self.device)
+            x_cat = batch_data["X_cat"].long().to(self.device)
+            x_cat_tuple = torch.split(x_cat, 1, dim=2)
+            x_cat_tuple = [cur_cat.squeeze(2) for cur_cat in x_cat_tuple]
+            
             y = batch_data["y"].to(self.device)
-            # mask = y!=-1
-            mask = batch_data["mask"].to(self.device)
+            src_mask = batch_data["mask"].to(self.device)
 
             # Forward pass
-            output = self.model(x_num, x_cat)
+            output = self.model(x_num, *x_cat_tuple, src_mask)
             self._iter += 1
             
-            # apply mask
-            y = y[mask]
-            output = output[mask]
+            # Apply mask to target
+            # mask = y!=-1
+            # y = y[mask]
+            # output = output[mask]
 
             # Derive loss
             loss = self.loss_fn(output, y)
@@ -65,7 +70,7 @@ class CustTrainer(BaseTrainer):
             train_loss_total += loss.item()
 
             # Free mem.
-            del x_num, y, output
+            del x_num, x_cat, x_cat_tuple, y, output
             _ = gc.collect()
 
         train_loss_avg = train_loss_total / len(self.train_loader)
@@ -99,17 +104,20 @@ class CustTrainer(BaseTrainer):
         for i, batch_data in enumerate(self.eval_loader):
             # Retrieve batched raw data
             x_num = batch_data["X_num"].to(self.device)
-            x_cat = batch_data["X_cat"].to(self.device)
+            x_cat = batch_data["X_cat"].long().to(self.device)
+            x_cat_tuple = torch.split(x_cat, 1, dim=2)
+            x_cat_tuple = [cur_cat.squeeze(2) for cur_cat in x_cat_tuple]
+            
             y = batch_data["y"].to(self.device)
-            # mask = y!=-1
-            mask = batch_data["mask"].to(self.device)
+            src_mask = batch_data["mask"].to(self.device)
 
             # Forward pass
-            output = self.model(x_num, x_cat)
+            output = self.model(x_num, *x_cat_tuple, src_mask)
             
-            # apply mask
-            y = y[mask]
-            output = output[mask]
+            # Apply mask to target
+            # mask = y!=-1
+            # y = y[mask]
+            # output = output[mask]
 
             # Derive loss
             loss = self.loss_fn(output, y)
@@ -119,12 +127,17 @@ class CustTrainer(BaseTrainer):
             y_true.append(y.detach().cpu())
             y_pred.append(output.detach().cpu())
 
-            del x_num, y, output
+            del x_num, x_cat, x_cat_tuple, y, output
             _ = gc.collect()
         
+        print('@@', len(y_true), torch.cat(y_true).shape)
+
         y_true = torch.cat(y_true).reshape(-1, self.cfg.N_QNS)
         y_pred = torch.cat(y_pred).reshape(-1, self.cfg.N_QNS)
         
+        print('##', y_true.shape)
+
+
         y_pred = F.sigmoid(y_pred)  # Tmp. workaround (because loss has built-in sigmoid)
         eval_loss_avg = eval_loss_total / len(self.eval_loader)
         eval_result = self.evaluator.evaluate(y_true, y_pred)

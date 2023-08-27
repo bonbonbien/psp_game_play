@@ -33,7 +33,6 @@ oof_pred = pd.DataFrame(
 
 gkf = GroupKFold(n_splits=cfg.N_FOLD)
 for i, (train_index, test_index) in enumerate(gkf.split(X=X, groups=X.index)):
-    break
     print(f"Training and evaluation process of fold{i} starts...")
     # TRAIN DATA
     train_x = X.iloc[train_index]
@@ -44,11 +43,10 @@ for i, (train_index, test_index) in enumerate(gkf.split(X=X, groups=X.index)):
     valid_x = X.iloc[test_index]
     valid_users = valid_x.index.unique().values
     valid_y = targets.loc[valid_users, range(cfg.Q_ST, cfg.Q_ED+1)]
-    
-     # Build dataloader
+
+    # Build dataloader
     train_loader, val_loader = build_dataloaders((train_x, train_y), (valid_x, valid_y), cfg)
     # tt = PSPDataset((train_x, train_y), cfg)
-    # ? why val_load load from the beginning ?
     # for vv in val_loader:
     #     print(vv)
 
@@ -93,4 +91,21 @@ for i, (train_index, test_index) in enumerate(gkf.split(X=X, groups=X.index)):
 
     oof_pred.loc[valid_users, :] = best_preds["val"].numpy()
 
+    break
+
+# %%
+# print('@@@??')
+
+# %%
+train_loader, val_loader = build_dataloaders((train_x, train_y), (valid_x, valid_y), cfg)
+
+# %%
+# tt = PSPDataset((train_x, train_y), cfg)
+# ? why val_load load from the beginning ?
+for ii, vv in enumerate(train_loader):
+    print(ii)
+for ii, vv in enumerate(val_loader):
+    print(ii)
+
+# %%
 

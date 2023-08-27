@@ -60,10 +60,10 @@ class PSPDataset(Dataset):
             y.append(y_sess)
 
         self.X_num = np.stack(X_num)  # (N, P, C)
-        self.X_cat = np.stack(X_cat)  # (N, P, M)
+        _X_cat = np.stack(X_cat)  # (N, P, M)
         self.y = np.vstack(y)  # (N, Q)
-        self.mask = np.all(self.X_cat==-1, axis=-1)
-        # mask = torch.all(x_cat==-1, dim=-1)
+        self.mask = np.all(_X_cat==-1, axis=-1)
+        self.X_cat = _X_cat + 1
 
 
 # %%
