@@ -5,8 +5,8 @@ import numpy as np
 
 from config import event2int, name2int, fqid2int, room2int
 
-INPUT_PATH = "../input/how-to-get-32gb-ram/train.parquet"
-TARGET_PATH = "../input/how-to-get-32gb-ram/train_labels.parquet"
+# INPUT_PATH = "../input/how-to-get-32gb-ram/train.parquet"
+# TARGET_PATH = "../input/how-to-get-32gb-ram/train_labels.parquet"
 
 feats = [
     (
@@ -23,11 +23,11 @@ feats = [
 ]
 
 # %%
-def feature_engineering(feats_path=None, debug=True):
+def feature_engineering(cfg, feats_path=None, debug=True):
     if feats_path:
         X = pd.read_parquet(feats_path)
     else:
-        df = pl.read_parquet(INPUT_PATH, n_rows=10000 if debug else None)
+        df = pl.read_parquet(cfg.INPUT_PATH, n_rows=10000 if debug else None)
         df = df.drop(["fullscreen", "hq", "music"]).with_columns(feats)
         df = df.to_pandas()
         df = df.set_index('session_id')
@@ -44,7 +44,7 @@ def feature_engineering(feats_path=None, debug=True):
         X = df
 
     # Labels
-    targets = pd.read_parquet(TARGET_PATH).rename({'session_id': 'session_id_q'}, axis=1)
+    targets = pd.read_parquet(cfg.TARGET_PATH).rename({'session_id': 'session_id_q'}, axis=1)
     targets['session_id'] = targets.session_id_q.apply(lambda x: int(x.split('_')[0]))
     targets['q'] = targets.session_id_q.apply(lambda x: int(x.split('_')[-1][1:]))
     y = targets.pivot(index='session_id', columns='q', values='correct')

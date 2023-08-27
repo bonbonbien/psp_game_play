@@ -129,15 +129,10 @@ class CustTrainer(BaseTrainer):
 
             del x_num, x_cat, x_cat_tuple, y, output
             _ = gc.collect()
-        
-        print('@@', len(y_true), torch.cat(y_true).shape)
 
         y_true = torch.cat(y_true).reshape(-1, self.cfg.N_QNS)
         y_pred = torch.cat(y_pred).reshape(-1, self.cfg.N_QNS)
         
-        print('##', y_true.shape)
-
-
         y_pred = F.sigmoid(y_pred)  # Tmp. workaround (because loss has built-in sigmoid)
         eval_loss_avg = eval_loss_total / len(self.eval_loader)
         eval_result = self.evaluator.evaluate(y_true, y_pred)

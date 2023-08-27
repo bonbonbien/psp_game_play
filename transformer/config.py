@@ -12,58 +12,62 @@ CAT_FEAT_SIZE = {
     "level_code": 23,
 }
 
-cur_grp = '5-12'
 
 class CFG:
-    # Questions in a level-group, one model per group
-    LVL_GRP = cur_grp
-    N_QNS = len(QNS_PER_LV_GP[cur_grp])
-    Q_ST = QNS_PER_LV_GP[cur_grp][0]
-    Q_ED = QNS_PER_LV_GP[cur_grp][-1]
+    def __init__(self, cur_grp='5-12'):
+        self.INPUT_PATH = "../input/how-to-get-32gb-ram/train.parquet"
+        self.TARGET_PATH = "../input/how-to-get-32gb-ram/train_labels.parquet"
 
-    # ==Mode==
-    # Specify True to enable model training
-    train = True
-    N_FOLD = 5
+        # Questions in a level-group, one model per group
+        self.LVL_GRP = cur_grp
+        self.N_QNS = len(QNS_PER_LV_GP[cur_grp])
+        self.Q_ST = QNS_PER_LV_GP[cur_grp][0]
+        self.Q_ED = QNS_PER_LV_GP[cur_grp][-1]
 
-    # ==Data===
-    # FEATS = ["et_diff", "event_comb_code", "room_fqid_code", "page_code", "text_fqid_code", "level_code"]
-    # CAT_FEATS = ["event_comb_code", "room_fqid_code", "page_code","text_fqid_code", "level_code"]
-    # COLS_TO_USE = ["session_id", "index", "level", "level_group", "elapsed_time", 
-                    # "event_name", "name", "room_fqid", "page", "text_fqid"]
+        # ==Mode==
+        # Specify True to enable model training
+        # self.train = True
+        self.N_FOLD = 5
 
-    NUM_FEATS = ["elapsed_time_log1p", "elapsed_time_diff_log1p", "room_coor_x", "room_coor_y"]
-    CAT_FEATS = ['name', 'event_name', 'fqid', 'room_fqid', 'level']
-    FEATS = NUM_FEATS + CAT_FEATS
+        # ==Data===
+        # FEATS = ["et_diff", "event_comb_code", "room_fqid_code", "page_code", "text_fqid_code", "level_code"]
+        # CAT_FEATS = ["event_comb_code", "room_fqid_code", "page_code","text_fqid_code", "level_code"]
+        # COLS_TO_USE = ["session_id", "index", "level", "level_group", "elapsed_time", 
+                        # "event_name", "name", "room_fqid", "page", "text_fqid"]
 
-    # T_WINDOW = 512
-    T_WINDOW = 256
-    
-    # ==Training==
-    SEED = 42
-    # DEVICE = "cuda:0"
-    DEVICE = "cpu"
+        self.NUM_FEATS = ["elapsed_time_log1p", "elapsed_time_diff_log1p", "room_coor_x", "room_coor_y"]
+        self.CAT_FEATS = ['name', 'event_name', 'fqid', 'room_fqid', 'level']
+        self.FEATS = self.NUM_FEATS + self.CAT_FEATS
 
-    # EPOCH = 70
-    EPOCH = 3
-    CKPT_METRIC = "f1"
-    # CKPT_METRIC = "f1@0.63"
+        # T_WINDOW = 512
+        self.T_WINDOW = 256
+        
+        # ==Training==
+        self.SEED = 42
+        # DEVICE = "cuda:0"
+        self.DEVICE = "cpu"
 
-    # ==DataLoader==
-    # BATCH_SIZE = 128
-    BATCH_SIZE = 3
-    # NUM_WORKERS = 4
-    NUM_WORKERS = 0
+        # EPOCH = 70
+        self.EPOCH = 3
+        self.CKPT_METRIC = "f1"
+        # self.CKPT_METRIC = "f1@0.63"
 
-    # ==Solver==
-    LR = 1e-3
-    WEIGHT_DECAY = 1e-2
+        # ==DataLoader==
+        # BATCH_SIZE = 128
+        self.BATCH_SIZE = 3
+        # NUM_WORKERS = 4
+        self.NUM_WORKERS = 0
 
-    # ==Early Stopping==
-    ES_PATIENCE = 20
+        # ==Solver==
+        self.LR = 1e-3
+        self.WEIGHT_DECAY = 1e-2
 
-    # ==Evaluator==
-    EVAL_METRICS = ["auroc", "f1"]
+        # ==Early Stopping==
+        # ES_PATIENCE = 20
+        self.ES_PATIENCE = 5
+
+        # ==Evaluator==
+        self.EVAL_METRICS = ["auroc", "f1"]
 
 
 
@@ -85,7 +89,7 @@ event_name_feature = [
     'map_click', 'checkpoint', 'notebook_click'
 ]
 name_feature = ['basic', 'undefined', 'close', 'open', 'prev', 'next']
-fqid_feature = ['fqid_None', 'archivist', 'archivist_glasses', 'block', 'block_0', 'block_magnify', 'block_tocollection', 'block_tomap2', 'boss', 'businesscards', 'businesscards.card_0.next', 'businesscards.card_1.next', 'businesscards.card_bingo.bingo', 'businesscards.card_bingo.next', 'ch3start', 'chap1_finale', 'chap1_finale_c', 'chap2_finale_c', 'chap4_finale_c', 'coffee', 'colorbook', 'confrontation', 'crane_ranger', 'cs', 'directory', 'directory.closeup.archivist', 'door_block_clean', 'door_block_talk', 'doorblock', 'expert', 'flag_girl', 'fqid_None', 'glasses', 'gramps', 'groupconvo', 'groupconvo_flag', 'intro', 'janitor', 'journals', 'journals.hub.topics', 'journals.pic_0.next', 'journals.pic_1.next', 'journals.pic_2.bingo', 'journals.pic_2.next', 'journals_flag', 'journals_flag.hub.topics', 'journals_flag.hub.topics_old', 'journals_flag.pic_0.bingo', 'journals_flag.pic_0.next', 'journals_flag.pic_0_old.next', 'journals_flag.pic_1.bingo', 'journals_flag.pic_1.next', 'journals_flag.pic_1_old.next', 'journals_flag.pic_2.bingo', 'journals_flag.pic_2.next', 'key', 'lockeddoor', 'logbook', 'logbook.page.bingo', 'magnify', 'notebook', 'outtolunch', 'photo', 'plaque', 'plaque.face.date', 'reader', 'reader.paper0.next', 'reader.paper0.prev', 'reader.paper1.next', 'reader.paper1.prev', 'reader.paper2.bingo', 'reader.paper2.next', 'reader.paper2.prev', 'reader_flag', 'reader_flag.paper0.next', 'reader_flag.paper0.prev', 'reader_flag.paper1.next', 'reader_flag.paper1.prev', 'reader_flag.paper2.bingo', 'reader_flag.paper2.next', 'remove_cup', 'report', 'retirement_letter', 'savedteddy', 'seescratches', 'teddy', 'tobasement', 'tocage', 'tocloset', 'tocloset_dirty', 'tocollection', 'tocollectionflag', 'toentry', 'tofrontdesk', 'togrampa', 'tohallway', 'tomap', 'tomicrofiche', 'tostacks', 'tracks', 'tracks.hub.deer', 'trigger_coffee', 'trigger_scarf', 'tunic', 'tunic.capitol_0', 'tunic.capitol_1', 'tunic.capitol_2', 'tunic.drycleaner', 'tunic.flaghouse', 'tunic.historicalsociety', 'tunic.hub.slip', 'tunic.humanecology', 'tunic.kohlcenter', 'tunic.library', 'tunic.wildlife', 'unlockdoor', 'wells', 'wellsbadge', 'what_happened', 'worker']
+fqid_feature = ['fqid_None', 'archivist', 'archivist_glasses', 'block', 'block_0', 'block_1', 'block_badge', 'block_badge_2', 'block_magnify', 'block_nelson', 'block_tocollection', 'block_tomap1', 'block_tomap2', 'boss', 'businesscards', 'businesscards.card_0.next', 'businesscards.card_1.next', 'businesscards.card_bingo.bingo', 'businesscards.card_bingo.next', 'ch3start', 'chap1_finale', 'chap1_finale_c', 'chap2_finale', 'chap2_finale_c', 'chap4_finale_c', 'coffee', 'colorbook', 'confrontation', 'crane_ranger', 'cs', 'directory', 'directory.closeup.archivist', 'door_block_clean', 'door_block_talk', 'doorblock', 'expert', 'flag_girl', 'fox', 'glasses', 'gramps', 'groupconvo', 'groupconvo_flag', 'intro', 'janitor', 'journals', 'journals.hub.topics', 'journals.pic_0.next', 'journals.pic_1.next', 'journals.pic_2.bingo', 'journals.pic_2.next', 'journals_flag', 'journals_flag.hub.topics', 'journals_flag.hub.topics_old', 'journals_flag.pic_0.bingo', 'journals_flag.pic_0.next', 'journals_flag.pic_0_old.next', 'journals_flag.pic_1.bingo', 'journals_flag.pic_1.next', 'journals_flag.pic_1_old.next', 'journals_flag.pic_2.bingo', 'journals_flag.pic_2.next', 'journals_flag.pic_2_old.next', 'key', 'lockeddoor', 'logbook', 'logbook.page.bingo', 'magnify', 'need_glasses', 'notebook', 'outtolunch', 'photo', 'plaque', 'plaque.face.date', 'reader', 'reader.paper0.next', 'reader.paper0.prev', 'reader.paper1.next', 'reader.paper1.prev', 'reader.paper2.bingo', 'reader.paper2.next', 'reader.paper2.prev', 'reader_flag', 'reader_flag.paper0.next', 'reader_flag.paper0.prev', 'reader_flag.paper1.next', 'reader_flag.paper1.prev', 'reader_flag.paper2.bingo', 'reader_flag.paper2.next', 'reader_flag.paper2.prev', 'remove_cup', 'report', 'retirement_letter', 'savedteddy', 'seescratches', 'teddy', 'tobasement', 'tocage', 'tocloset', 'tocloset_dirty', 'tocollection', 'tocollectionflag', 'toentry', 'tofrontdesk', 'togrampa', 'tohallway', 'tomap', 'tomicrofiche', 'tostacks', 'tracks', 'tracks.hub.deer', 'trigger_coffee', 'trigger_scarf', 'tunic', 'tunic.capitol_0', 'tunic.capitol_1', 'tunic.capitol_2', 'tunic.drycleaner', 'tunic.flaghouse', 'tunic.historicalsociety', 'tunic.hub.slip', 'tunic.humanecology', 'tunic.kohlcenter', 'tunic.library', 'tunic.wildlife', 'unlockdoor', 'wells', 'wellsbadge', 'what_happened', 'worker']
 room_fqid_feature = [
     # 'room_fqid_None',
     'tunic.capitol_0.hall', 'tunic.capitol_1.hall', 'tunic.capitol_2.hall', 
@@ -105,4 +109,4 @@ fqid2int = {v:i for i, v in enumerate(fqid_feature)}
 room2int = {v:i for i, v in enumerate(room_fqid_feature)}
 
 print('cat len:', len(name_feature), len(event_name_feature), len(fqid_feature), len(room_fqid_feature))
-# 6, 11, 120, 19
+# 6, 11, 129, 19
